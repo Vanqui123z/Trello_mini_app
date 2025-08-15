@@ -1,0 +1,76 @@
+import { Timestamp,FieldValue } from "firebase/firestore";
+
+
+// 1. Users
+export interface User {
+  boardId?: string;
+  email: string;
+  createdAt: Timestamp | FieldValue;
+  boards: string[]; 
+}
+
+// 2. Boards
+export interface Board {
+  boardId?: string;
+  name: string;
+  description?: string;
+  ownerId: string; 
+  createdAt: Timestamp | FieldValue;
+  members: string[];
+  invites: string[];
+}
+
+// 3. Cards (subcollection of Boards)
+export interface Card {
+ boardId?: string;
+  name: string;
+  description?: string;
+  createdAt: Timestamp | FieldValue;
+  ownerId: string;
+  members: string[];
+  tasks_count: number;
+}
+
+// 4. Tasks (subcollection of Cards)
+export type TaskStatus = "todo" | "in-progress" | "done";
+
+export interface Task {
+ boardId?: string;
+  title: string;
+  description?: string;
+  status: TaskStatus;
+  createdAt: Timestamp | FieldValue;
+  ownerId: string;
+  assignedMembers: string[];
+}
+
+// 5. Invitations 
+export type InviteStatus = "pending" | "accepted" | "declined";
+
+export interface Invite {
+  boardId?: string|undefined;
+  boardOwnerId: string|undefined;
+  memberId?: string; 
+  emailMember: string;
+  status: InviteStatus;
+  createdAt: Timestamp | FieldValue;
+}
+
+// 6. GitHub Attachment (subcollection of Tasks)
+export type GitHubAttachmentType = "pull_request" | "commit" | "issue";
+
+export interface GitHubAttachments {
+  attboardId?: string;
+  type: GitHubAttachmentType;
+  number?: string;
+  sha?: string;    
+  createdAt: Timestamp | FieldValue;
+}
+
+// 7. Email Verification Code
+export interface EmailVerificationCodes {
+  email?:string;
+  code: string;
+  expiresAt: Timestamp | FieldValue;
+  createdAt: Timestamp | FieldValue;
+}

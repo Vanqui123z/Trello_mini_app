@@ -77,22 +77,13 @@ class CardController {
             res.status(500).json({ status: "failed", message: "getById failed", error });
         }
   }
-  invite(req: Request, res: Response) {
-    const { boardId } = req.params;
-    res.send(`Invite user to board ${boardId}`);
-  }
+
   
   // Lấy card theo user
   getByUser(req: Request, res: Response) {
     const { boardId, userId } = req.params;
     res.send(`Get cards in board ${boardId} for user ${userId}`);
   }
-  // Nhận / từ chối lời mời
-  acceptInvite(req: Request, res: Response) {
-    const { boardId, id } = req.params;
-    res.send(`Accept or reject invite for card ${id} in board ${boardId}`);
-  }
-
 }
 
 export default new CardController();

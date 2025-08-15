@@ -3,9 +3,10 @@ import boardsRouter  from "./boardsRoute"
 import authRouter  from "./authRouter"
 
 import repositoriesController from "../controllers/repositoriesController";
+import verifyToken from "../middlewares/auth";
 const router = Router()
 
-router.use("/boards",boardsRouter)
+router.use("/boards",verifyToken,boardsRouter)
 router.use("/auth",authRouter)
 
 

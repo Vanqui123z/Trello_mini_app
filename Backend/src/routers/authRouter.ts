@@ -1,15 +1,7 @@
 import { Router } from "express";
-import taskController from "../controllers/taskController"
+import authController from "../controllers/authController"
 const route = Router()
 
-route.get("/", taskController.getAll);
-route.post("/", taskController.create);
-route.get("/:taskId", taskController.getById);
-route.put("/:taskId", taskController.update);
-route.delete("/:taskId", taskController.delete);
-route.post("/:taskId/assign", taskController.assignMember);
-route.get("/:taskId/assign", taskController.getMembers);
-route.delete("/:taskId/assign/:memberId", taskController.removeMember);
-
-
+route.post("/signup",authController.signup)
+route.post("/signin",authController.signin)
 export default route;

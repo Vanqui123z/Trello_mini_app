@@ -1,5 +1,6 @@
 import { collection, getDocs, addDoc, getDoc, doc, setDoc, deleteDoc,serverTimestamp  } from "firebase/firestore";
 import { Request, Response } from "express";
+import { Board } from "./interface";
 import db from "../config/firebaseConfig";
 
 
@@ -25,7 +26,7 @@ class boardController {
     async create(req: Request, res: Response) {
         try {
             const { name, description, ownerId, members = [], invites = [] } = req.body;
-            const board = {
+            const board :Board= {
                 name,
                 description,
                 ownerId,
