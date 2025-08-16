@@ -22,15 +22,18 @@ function fitterData(doc: any, data: any) {
 
 }
 
+
+
 class boardController {
+
     async create(req: Request, res: Response) {
         try {
-            const { name, description, ownerId, members = [], invites = [] } = req.body;
+            const { name, description, ownerId, invites = [] } = req.body;
             const board :Board= {
                 name,
                 description,
                 ownerId,
-                members,
+                members:[],
                 invites,
                 createdAt: serverTimestamp(),
             }
@@ -41,23 +44,24 @@ class boardController {
         }
     }
 
-
     async getAll(req: Request, res: Response) {
         try {
             const getAllBoards = await getDocs(collectionRef);
             const boards = getAllBoards.docs.map(doc => { return fitterData(doc,doc.data()) });
-            res.status(200).json({ status: "success", boards });
+          
+
+            return res.status(200).json({ status: "success", boards });
         } catch (error) {
-            res.status(500).json({ status: "failed", message: "getAll boards failed", error });
+            return res.status(500).json({ status: "failed", message: "getAll boards failed", error });
         }
     }
 
     async getById(req: Request, res: Response) {
         try {
-            const { id } = req.params;
-            if (!id) return res.status(400).json({ status: "failed", message: "Missing id" });
+            const { boardId } = req.params;
+            if (!boardId) return res.status(400).json({ status: "failed", message: "Missing boardId" });
 
-            const docSnap = await getDoc(doc(db, "Boards", id));
+            const docSnap = await getDoc(doc(db, "Boards", boardId));
             if (!docSnap.exists()) return res.status(404).json({ status: "failed", message: "Board not found" });
 
             res.status(200).json({ status: "success", board: fitterData(docSnap, docSnap.data()) });
@@ -68,9 +72,9 @@ class boardController {
 
     async update(req: Request, res: Response) {
         try {
-            const { id } = req.params;
-            if (!id) return res.status(400).json("id error")
-            await setDoc(doc(db, "Boards", id), { contents: "some-data", }, { merge: true })
+            const { boardId } = req.params;
+            if (!boardId) return res.status(400).json("boardId error")
+            await setDoc(doc(db, "Boards", boardId), { contents: "some-data", }, { merge: true })
 
             res.status(200).json("Updated/merged!");
         } catch (error) {
@@ -79,12 +83,11 @@ class boardController {
 
     }
 
-
     async delete(req: Request, res: Response) {
         try {
-            const { id } = req.params;
-            if (!id) return res.status(400).json("id error")
-            await deleteDoc(doc(db, "Boards", id))
+            const { boardId } = req.params;
+            if (!boardId) return res.status(400).json("boardId error")
+            await deleteDoc(doc(db, "Boards", boardId))
 
             res.status(200).json("Updated/merged!");
         } catch (error) {

@@ -1,18 +1,18 @@
-import { Router } from "express";
+import  express  from "express";
 import taskController from "../controllers/taskController"
-import githudRouter from "./GithudRouter"
-const route = Router()
+import githudRouter from "./githudRouter"
+const taskRouter = express.Router({ mergeParams: true }); 
 
-route.get("/", taskController.getAll);
-route.post("/", taskController.create);
-route.get("/:taskId", taskController.getById);
-route.put("/:taskId", taskController.update);
-route.delete("/:taskId", taskController.delete);
-route.post("/:taskId/assign", taskController.assignMember);
-route.get("/:taskId/assign", taskController.getMembers);
-route.delete("/:taskId/assign/:memberId", taskController.removeMember);
+taskRouter.get("/", taskController.getAll);
+taskRouter.post("/", taskController.create);
+taskRouter.get("/:taskId", taskController.getById);
+taskRouter.put("/:taskId", taskController.update);
+taskRouter.delete("/:taskId", taskController.delete);
+taskRouter.post("/:taskId/assign", taskController.assignMember);
+taskRouter.get("/:taskId/assign", taskController.getMembers);
+taskRouter.delete("/:taskId/assign/:memberId", taskController.removeMember);
 
-route.use("/:taskId",githudRouter)
+taskRouter.use("/:taskId",githudRouter)
 
 
-export default route;
+export default taskRouter;

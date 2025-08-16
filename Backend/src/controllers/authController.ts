@@ -18,7 +18,6 @@ function fitterData(doc: any, data: any) {
 
 }
 
-
 const usersCollection = collection(db, "Users");
 const OTPCollection = collection(db, "emailVerificationCodes");
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
@@ -69,25 +68,26 @@ class authController {
 
             // new user
                 // get email in Users table
-                const q2 = query(usersCollection, where("email", "==", email));
-                const snapshot2 = await getDocs(q2);
-                const userDoc = snapshot2.docs.map((ref) => { return fitterData(ref, ref.data()) });
+                let idUser;
+                const qUser = query(usersCollection, where("email", "==", email));
+                const snapshotUser = await getDocs(qUser);
+                const userDoc = snapshotUser.docs.map((ref) => {idUser=ref.id; return fitterData(ref, ref.data()) });
                 // if email of Users match email of  emailVerificationCodes 
                 if (userDoc[0]?.email == otpDoc[0]?.email) {
                     return  res.redirect("/auth/signin")
                 } else {
                     const newUser: User = {
+                        
                         boardId: "",
-                        email: email,
+                        email: email, 
                         createdAt: serverTimestamp(),
                         boards:[],
                     }
                     await setDoc(doc(usersCollection), newUser)
                 }
-
+                console.log("dUser",idUser)
                 // // Generate JWT
-                const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: "20m" });
-                
+                const token = jwt.sign({idUser, email }, JWT_SECRET, { expiresIn: "20m" });
                 return res.status(200).json({ token: token });
 
 

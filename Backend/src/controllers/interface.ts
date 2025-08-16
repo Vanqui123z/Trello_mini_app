@@ -3,6 +3,7 @@ import { Timestamp,FieldValue } from "firebase/firestore";
 
 // 1. Users
 export interface User {
+  userId?:string;
   boardId?: string;
   email: string;
   createdAt: Timestamp | FieldValue;
@@ -27,7 +28,7 @@ export interface Card {
   description?: string;
   createdAt: Timestamp | FieldValue;
   ownerId: string;
-  members: string[];
+  list_member: string[];
   tasks_count: number;
 }
 
@@ -35,13 +36,12 @@ export interface Card {
 export type TaskStatus = "todo" | "in-progress" | "done";
 
 export interface Task {
- boardId?: string;
   title: string;
   description?: string;
   status: TaskStatus;
   createdAt: Timestamp | FieldValue;
   ownerId: string;
-  assignedMembers: string[];
+  assignedMembers: [];
 }
 
 // 5. Invitations 
