@@ -3,94 +3,111 @@ export const BASE_URL = "http://localhost:3000";
 export const API_URL = {
   boards: `${BASE_URL}/boards`,
   cards: (boardId: string) => `${BASE_URL}/boards/${boardId}/cards`,
-  cardById: (boardId: string, cardId: string) => `${BASE_URL}/boards/${boardId}/cards/${cardId}`,
-}
+  cardById: (boardId: string, cardId: string) =>
+    `${BASE_URL}/boards/${boardId}/cards/${cardId}`,
+};
+
 class CardsService {
-    async create(boardId: string, name: string, description: string, list_member: any, ownerId: any, tasks_count: number) {
-        const res = await fetch(`${API_URL.cards(boardId)}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, description, list_member, ownerId, tasks_count }),
-        });
+  private getAuthHeaders() {
+    const token = localStorage.getItem("token");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  }
 
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.message || "Failed to create card");
-        }
+  async create(
+    boardId: string,
+    name: string,
+    description: string,
+    list_member: any,
+    ownerId: any,
+    tasks_count: number
+  ) {
+    const res = await fetch(`${API_URL.cards(boardId)}`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ name, description, list_member, ownerId, tasks_count }),
+    });
 
-        return res.json();
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Failed to create card");
     }
 
-    async getAll(boardId: string) {
-        const res = await fetch(`${API_URL.cards(boardId)}`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-        });
+    return res.json();
+  }
 
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.message || "Failed to get cards");
-        }
+  async getAll(boardId: string) {
+    const res = await fetch(`${API_URL.cards(boardId)}`, {
+      method: "GET",
+      headers: this.getAuthHeaders(),
+    });
 
-        return res.json();
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Failed to get cards");
     }
 
-    async getById(boardId: string, cardId: string) {
-        const res = await fetch(`${API_URL.cardById(boardId,cardId)}`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-        });
+    return res.json();
+  }
 
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.message || "Failed to get card by id");
-        }
+  async getById(boardId: string, cardId: string) {
+    const res = await fetch(`${API_URL.cardById(boardId, cardId)}`, {
+      method: "GET",
+      headers: this.getAuthHeaders(),
+    });
 
-        return res.json();
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Failed to get card by id");
     }
 
-    async update(boardId: string, cardId: string, data: any) {
-        const res = await fetch(`${API_URL.cardById(boardId,cardId)}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
+    return res.json();
+  }
 
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.message || "Failed to update card");
-        }
+  async update(boardId: string, cardId: string, data: any) {
+    const res = await fetch(`${API_URL.cardById(boardId, cardId)}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
 
-        return res.json();
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Failed to update card");
     }
 
-    async delete(boardId: string, cardId: string) {
-        const res = await fetch(`${API_URL.cardById(boardId,cardId)}`, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-        });
+    return res.json();
+  }
 
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.message || "Failed to delete card");
-        }
+  async delete(boardId: string, cardId: string) {
+    const res = await fetch(`${API_URL.cardById(boardId, cardId)}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+    });
 
-        return res.json();
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Failed to delete card");
     }
 
-    async getByUser(boardId: string, userId: string) {
-        const res = await fetch(`${API_URL.cards(boardId)}/user/${userId}`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-        });
+    return res.json();
+  }
 
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.message || "Failed to get cards by user");
-        }
+  async getByUser(boardId: string, userId: string) {
+    const res = await fetch(`${API_URL.cards(boardId)}/user/${userId}`, {
+      method: "GET",
+      headers: this.getAuthHeaders(),
+    });
 
-        return res.json();
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Failed to get cards by user");
     }
+
+    return res.json();
+  }
 }
 
 export default new CardsService();

@@ -36,6 +36,8 @@ export interface Card {
 export type TaskStatus = "todo" | "in-progress" | "done";
 
 export interface Task {
+  boardId?: string;
+  task?: string;
   title: string;
   description?: string;
   status: TaskStatus;

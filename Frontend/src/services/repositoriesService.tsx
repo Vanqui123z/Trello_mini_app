@@ -1,18 +1,34 @@
 export const BASE_URL = "http://localhost:3000";
 
 export const API_URL = {
-  repoInfo: (repositoryId: string) =>`${BASE_URL}/repositories/${repositoryId}/github-info`,
-  attachGithub: (boardId: string, cardId: string, taskId: string) =>`${BASE_URL}/boards/${boardId}/cards/${cardId}/tasks/${taskId}/github-attach`,
-  listAttachments: (boardId: string, cardId: string, taskId: string) =>`${BASE_URL}/boards/${boardId}/cards/${cardId}/tasks/${taskId}/github-attachments`,
-  deleteAttachment: (  boardId: string,  cardId: string,  taskId: string,  attachmentId: string) =>
+  repoInfo: (repositoryId: string) =>
+    `${BASE_URL}/repositories/${repositoryId}/github-info`,
+  attachGithub: (boardId: string, cardId: string, taskId: string) =>
+    `${BASE_URL}/boards/${boardId}/cards/${cardId}/tasks/${taskId}/github-attach`,
+  listAttachments: (boardId: string, cardId: string, taskId: string) =>
+    `${BASE_URL}/boards/${boardId}/cards/${cardId}/tasks/${taskId}/github-attachments`,
+  deleteAttachment: (
+    boardId: string,
+    cardId: string,
+    taskId: string,
+    attachmentId: string
+  ) =>
     `${BASE_URL}/boards/${boardId}/cards/${cardId}/tasks/${taskId}/github-attachments/${attachmentId}`,
 };
 
-class repositoriesService {
+class RepositoriesService {
+  private getAuthHeaders() {
+    const token = localStorage.getItem("token");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  }
+
   async getRepoInfo(repositoryId: string) {
     const res = await fetch(API_URL.repoInfo(repositoryId), {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: this.getAuthHeaders(),
     });
 
     if (!res.ok) {
@@ -26,7 +42,7 @@ class repositoriesService {
   async attach(boardId: string, cardId: string, taskId: string, data: any) {
     const res = await fetch(API_URL.attachGithub(boardId, cardId, taskId), {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
     });
 
@@ -41,7 +57,7 @@ class repositoriesService {
   async getAttachments(boardId: string, cardId: string, taskId: string) {
     const res = await fetch(API_URL.listAttachments(boardId, cardId, taskId), {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: this.getAuthHeaders(),
     });
 
     if (!res.ok) {
@@ -62,7 +78,7 @@ class repositoriesService {
       API_URL.deleteAttachment(boardId, cardId, taskId, attachmentId),
       {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: this.getAuthHeaders(),
       }
     );
 
@@ -75,4 +91,4 @@ class repositoriesService {
   }
 }
 
-export default new repositoriesService();
+export default new RepositoriesService();

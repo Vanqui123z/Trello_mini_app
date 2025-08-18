@@ -1,8 +1,8 @@
-import { collection, getDocs, addDoc, getDoc, doc, setDoc, deleteDoc,serverTimestamp  } from "firebase/firestore";
+import { collection, getDocs, addDoc, getDoc, doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { Request, Response } from "express";
 import { Board } from "./interface";
 import db from "../config/firebaseConfig";
-import {AuthRequest} from "../middlewares/auth";
+import { AuthRequest } from "../middlewares/auth";
 
 
 
@@ -25,22 +25,33 @@ function fitterData(doc: any, data: any) {
 
 
 
+
 class boardController {
 
-    async create(req: AuthRequest, res: Response) {
+
+
+    async create(req: Request, res: Response) {
         try {
             const { name, description, invites } = req.body
             console.log(req.body);
-            const board :Board= {
-                name:name,
-                description:description,
-                ownerId:"",
-                members:[],
-                invites:invites,
+
+
+            const board: Board = {
+                name: name,
+                description: description,
+                ownerId: "",
+                members: [],
+                invites: invites,
                 createdAt: serverTimestamp(),
             }
-            const newDocRef = await addDoc(collectionRef, board);
-            res.status(200).json({ status: "success!", newDocRef });
+             await addDoc(collectionRef, board);
+            const snapshot = await getDocs(collection(db, "Boards"));
+             const boards = snapshot.docs.map((doc) => ({
+                boardId: doc.id,        // 🔥 lấy id doc gắn vào object
+                ...doc.data(),
+            }));
+            res.status(200).json({ status: "success!", boards});
+            console.log(boards)
         } catch (error) {
             res.status(500).json({ status: "failed", error });
         }
@@ -49,8 +60,8 @@ class boardController {
     async getAll(req: Request, res: Response) {
         try {
             const getAllBoards = await getDocs(collectionRef);
-            const boards = getAllBoards.docs.map(doc => { return fitterData(doc,doc.data()) });
-          
+            const boards = getAllBoards.docs.map(doc => { return fitterData(doc, doc.data()) });
+
 
             return res.status(200).json({ status: "success", boards });
         } catch (error) {

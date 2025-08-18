@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/boards.scss";
 import boardsService from "../services/boardsService";
 
 
 
 interface Board {
-    id: number;
+    id: string;
     name: string;
     description?: string;
     color?: "white";
@@ -17,6 +18,7 @@ const Boards: React.FC = () => {
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [newBoardName, setNewBoardName] = useState("");
     const [newBoardDescription, setNewBoardDescription] = useState("");
+    const navigate = useNavigate();
 
 
     useEffect(() => {
@@ -38,7 +40,6 @@ const Boards: React.FC = () => {
 
         try {
             const newBoard = await boardsService.create(newBoardName, newBoardDescription, []);
-            console.log("test",newBoardName, newBoardDescription)
             setBoards([...boards, newBoard]);
             setNewBoardName("");
             setNewBoardDescription("");
@@ -47,18 +48,9 @@ const Boards: React.FC = () => {
             console.error("Failed to create board:", error);
         }
     };
-    const deleteBoards= async (e?: React.FormEvent) => {
-        if (e) e.preventDefault();
-
-        if (!newBoardName.trim()) return;
-
-        try {
-            const newBoard = await boardsService.delete("s");
-        } catch (error) {
-            console.error("Failed to create board:", error);
-      
+    const openCards = (boardId:string) => {
+           navigate(`/boards/${boardId}/cards`);
     }
-}
 
 
 
@@ -130,12 +122,11 @@ const Boards: React.FC = () => {
 
                     {/* Boards Grid */}
                     <div className="boards-grid">
-                        {boards.map((board,index) => (
-                            <div key={index} className="board-card" >
+                        {boards.map((board, index) => (
+                            <div key={index} className="board-card" onClick={()=>{ return openCards(board.id)}} >
                                 <div className="p-3">
                                     <div className="board-title">{board.name}</div>
                                     <div className="board-description">{board.description}</div>
-                                    <button className="btn btn-danger" onClick={()=>deleteBoards()}>Delete</button>
                                 </div>
                             </div>
                         ))}

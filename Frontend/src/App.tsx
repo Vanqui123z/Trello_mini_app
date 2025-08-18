@@ -11,8 +11,9 @@ function App() {
             <Route path='/auth/signup' element={<Login />}/>
             <Route path='/auth/signin' element={<Verify />}/>
             <Route path='/boards' element={<Boards />}/>
-            <Route path='/cards' element={<Cards />}/>
-            <Route path='/tasks' element={<Tasks />}/>
+            <Route path='/boards' element={<Boards />}/>
+            <Route path='boards/:boards/cards' element={<Cards />}/>
+            <Route path='boards/:boardid/cards/:cardId/task' element={<Tasks />}/>
             <Route path='*' element={<Navigate to ="/auth/signup" replace />}/>
         </Routes>
     
