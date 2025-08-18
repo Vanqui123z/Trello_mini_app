@@ -14,6 +14,7 @@ export  function docTaskId  (boardId: string, cardId: string, taskId: string) {
 
 function fitterData(doc: any, data: any) {
   return {
+    id: doc.id,
     title: data.title || "",
     description: data.description || "",
     status: data.status || "",
@@ -27,7 +28,7 @@ function fitterData(doc: any, data: any) {
 class taskController {
   async create(req: Request, res: Response) {
     try {
-      const { title, description, status, ownerId, assignedMembers = [] } = req.body;
+      const { title, description, status, ownerId, assignedMembers,githubAttachments  } = req.body;
       const { boardId, cardId } = req.params;
       console.log("req.params", req.params)
       if (!boardId || !cardId) {
@@ -41,12 +42,19 @@ class taskController {
         status,
         ownerId,
         assignedMembers,
-        githubAttachments:[],
+        githubAttachments,
         createdAt: serverTimestamp(),
       };
 
-      const newTask = await addDoc(collectionTask(boardId, cardId), task);
-      res.status(200).json({ message: "success", id: newTask.id });
+     const newTasks = await addDoc(collectionTask(boardId, cardId), task);
+       res.status(200).json({
+        message: "success",
+        newTask: {
+          taskId: newTasks.id,
+          ...task,
+        },
+      });
+      res.status(200).json({ message: "success", newTask: newTasks });
     } catch (error) {
       res.status(500).json({ message: "failed", error });
     }

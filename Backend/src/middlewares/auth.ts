@@ -11,7 +11,8 @@ function verifyToken(req: Request, res: Response, next: NextFunction) {
     const authHeader = req.header("Authorization");
 
     if (!authHeader) {
-        return res.redirect("/auth/signin")
+        // return res.redirect("/auth/signin")
+        return next()
     }
 
     const token = authHeader.replace("Bearer ", "").trim();

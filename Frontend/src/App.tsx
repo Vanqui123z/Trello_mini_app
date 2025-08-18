@@ -4,6 +4,7 @@ import Verify from "./pages/verify";
 import Boards from "./pages/boards";
 import Cards from "./pages/cards";
 import Tasks from "./pages/tasks";
+import RepositoryInfo from "./pages/tasks";
 function App() {
   return (
     <BrowserRouter> 
@@ -11,12 +12,12 @@ function App() {
             <Route path='/auth/signup' element={<Login />}/>
             <Route path='/auth/signin' element={<Verify />}/>
             <Route path='/boards' element={<Boards />}/>
-            <Route path='/boards' element={<Boards />}/>
-            <Route path='boards/:boards/cards' element={<Cards />}/>
-            <Route path='boards/:boardid/cards/:cardId/task' element={<Tasks />}/>
+            <Route path='/boards/:boardId/cards' element={<Cards />}/>
+            <Route path='/boards/:boardId/cards/:cardId/task' element={<Cards />}/>
+            <Route path='/boards/:boardId/cards/:cardId/tasks/:taskId' element={<Tasks />}/>
+            <Route path='/repositories/:repositoryId/github-info' element={<RepositoryInfo />}/>
             <Route path='*' element={<Navigate to ="/auth/signup" replace />}/>
         </Routes>
-    
     </BrowserRouter>
   )
 }

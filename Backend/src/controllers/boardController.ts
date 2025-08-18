@@ -47,7 +47,7 @@ class boardController {
              await addDoc(collectionRef, board);
             const snapshot = await getDocs(collection(db, "Boards"));
              const boards = snapshot.docs.map((doc) => ({
-                boardId: doc.id,        // 🔥 lấy id doc gắn vào object
+                boardId: doc.id,       //attatch id to object
                 ...doc.data(),
             }));
             res.status(200).json({ status: "success!", boards});

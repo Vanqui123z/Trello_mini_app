@@ -23,7 +23,7 @@ export interface Board {
 
 // 3. Cards (subcollection of Boards)
 export interface Card {
- boardId?: string;
+  boardId?: string;
   name: string;
   description?: string;
   createdAt: Timestamp | FieldValue;
@@ -36,8 +36,7 @@ export interface Card {
 export type TaskStatus = "todo" | "in-progress" | "done";
 
 export interface Task {
-  boardId?: string;
-  task?: string;
+  taskId?: string;
   title: string;
   description?: string;
   status: TaskStatus;
@@ -76,4 +75,11 @@ export interface EmailVerificationCodes {
   code: string;
   expiresAt: Timestamp | FieldValue;
   createdAt: Timestamp | FieldValue;
+}
+
+// 8. Lists
+export interface List {
+  boardId?: string;
+  title: string;
+  cards: Card[];
 }

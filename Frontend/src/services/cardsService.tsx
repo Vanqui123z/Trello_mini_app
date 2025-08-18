@@ -38,6 +38,7 @@ class CardsService {
     return res.json();
   }
 
+
   async getAll(boardId: string) {
     const res = await fetch(`${API_URL.cards(boardId)}`, {
       method: "GET",
@@ -48,7 +49,6 @@ class CardsService {
       const err = await res.json();
       throw new Error(err.message || "Failed to get cards");
     }
-
     return res.json();
   }
 
