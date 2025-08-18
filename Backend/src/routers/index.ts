@@ -6,7 +6,7 @@ import repositoriesController from "../controllers/repositoriesController";
 import verifyToken from "../middlewares/auth";
 const router = Router()
 
-router.use("/boards",boardsRouter)
+router.use("/boards",verifyToken,boardsRouter)
 router.use("/auth",authRouter)
 router.use("/repositories",repositoriesController.getRepoInfo)
 

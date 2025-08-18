@@ -3,6 +3,10 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
+
+export interface AuthRequest extends Request {
+  user?: { userId: string ,email:string}; 
+}
 function verifyToken(req: Request, res: Response, next: NextFunction) {
     const authHeader = req.header("Authorization");
 
@@ -11,20 +15,13 @@ function verifyToken(req: Request, res: Response, next: NextFunction) {
     }
 
     const token = authHeader.replace("Bearer ", "").trim();
-
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { email: string };
-
-        if (!decoded || !decoded.email) {
-            return res.status(401).json({ redirect: "/auth/signin" });
-        }
-        else { 
-            (req as any).user= decoded;
-            next(); }
-
-    } catch (error) {
-        return res.status(401).json({ redirect: "/auth/signin" });
+    if(token){
+            next(); 
+    }else{
+      return res.json("no token ")
     }
-}
 
-export default verifyToken; 
+  }
+
+
+export default verifyToken;

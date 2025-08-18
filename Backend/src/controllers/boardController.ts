@@ -2,6 +2,7 @@ import { collection, getDocs, addDoc, getDoc, doc, setDoc, deleteDoc,serverTimes
 import { Request, Response } from "express";
 import { Board } from "./interface";
 import db from "../config/firebaseConfig";
+import {AuthRequest} from "../middlewares/auth";
 
 
 
@@ -26,15 +27,16 @@ function fitterData(doc: any, data: any) {
 
 class boardController {
 
-    async create(req: Request, res: Response) {
+    async create(req: AuthRequest, res: Response) {
         try {
-            const { name, description, ownerId, invites = [] } = req.body;
+            const { name, description, invites } = req.body
+            console.log(req.body);
             const board :Board= {
-                name,
-                description,
-                ownerId,
+                name:name,
+                description:description,
+                ownerId:"",
                 members:[],
-                invites,
+                invites:invites,
                 createdAt: serverTimestamp(),
             }
             const newDocRef = await addDoc(collectionRef, board);

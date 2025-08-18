@@ -1,8 +1,21 @@
 import express from "express";
 import db from "./config/firebaseConfig";
 import router from "./routers/index";
+import cors from "cors"
+import session from "express-session";
 
 const app = express();
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true, // nếu bạn gửi cookie/token trong header
+}));
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || "supersecret", // thay bằng biến môi trường
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // nếu dùng HTTPS thì để true
+}));
 
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))

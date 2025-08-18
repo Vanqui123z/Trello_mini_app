@@ -55,3 +55,8 @@ const Verify: React.FC = () => {
 
 export default Verify;
 
+
+
+// {"email":"anh112233@gmail.com",
+// "code":"947980"
+// }

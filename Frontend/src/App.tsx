@@ -8,12 +8,12 @@ function App() {
   return (
     <BrowserRouter> 
         <Routes>
-            <Route path='/auth/signin' element={<Login />}/>
-            <Route path='/auth/signup' element={<Verify />}/>
+            <Route path='/auth/signup' element={<Login />}/>
+            <Route path='/auth/signin' element={<Verify />}/>
             <Route path='/boards' element={<Boards />}/>
             <Route path='/cards' element={<Cards />}/>
             <Route path='/tasks' element={<Tasks />}/>
-            <Route path='*' element={<Navigate to ="/auth/signin" replace />}/>
+            <Route path='*' element={<Navigate to ="/auth/signup" replace />}/>
         </Routes>
     
     </BrowserRouter>

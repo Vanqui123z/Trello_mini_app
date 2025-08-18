@@ -12,10 +12,10 @@ const Login:React.FC =()=>{
         e.preventDefault();
         setLoading(true);
     try {
-        // await authService.sendEmail(email);
+        await authService.sendEmail(email);
         localStorage.setItem("email", email)
          alert("Mã xác thực đã được gửi. Vui lòng kiểm tra email!");
-         navigate("/auth/signup");
+         navigate("/auth/signin");
     } catch (error) {
          alert(error.message);
     } finally {

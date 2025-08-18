@@ -8,11 +8,10 @@ class authService{
             body :JSON.stringify({ email }),
         });
 
-            if(res.ok){
+            if(!res.ok){
                 const err = await res.json();
                 throw new Error(err.message||"email failed" );
             }
-             
             return res.json();
 
     }
@@ -21,10 +20,10 @@ class authService{
          const res  = await fetch(`${API_URL}/signin`,{
             method: "Post",
             headers: { "Content-Type": "application/json" },
-            body :JSON.stringify({ email }),
+            body :JSON.stringify({ email,code }),
         });
 
-            if(res.ok){
+            if(!res.ok){
                 const err = await res.json();
                 throw new Error(err.message||"email failed" );
             }
