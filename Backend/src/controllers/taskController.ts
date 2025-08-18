@@ -4,10 +4,10 @@ import db from "../config/firebaseConfig";
 import { Task } from "./interface";
 
 
-export const collectionTask = (boardId: string, cardId: string) => {
+export function collectionTask  (boardId: string, cardId: string)  {
   return collection(db, "Boards", boardId, "Cards", cardId, "Tasks");
 };
-export const collectionTaskId = (boardId: string, cardId: string, taskId: string) => {
+export  function docTaskId  (boardId: string, cardId: string, taskId: string) {
   return doc(db, "Boards", boardId, "Cards", cardId, "Tasks", taskId);
 };
 
@@ -41,6 +41,7 @@ class taskController {
         status,
         ownerId,
         assignedMembers,
+        githubAttachments:[],
         createdAt: serverTimestamp(),
       };
 
@@ -71,7 +72,7 @@ class taskController {
         return res.status(400).json({ status: "failed", message: "Missing params" });
       }
 
-      const docRef = await collectionTaskId(boardId, cardId, taskId);
+      const docRef =  docTaskId(boardId, cardId, taskId);
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists())
@@ -90,7 +91,7 @@ class taskController {
         return res.status(400).json({ status: "failed", message: "Missing params" });
       }
 
-      const docRef = collectionTaskId(boardId, cardId, taskId);
+      const docRef = docTaskId(boardId, cardId, taskId);
       await setDoc(docRef, req.body, { merge: true });
 
       res.status(200).json({ status: "success" });
@@ -106,7 +107,7 @@ class taskController {
         return res.status(400).json({ status: "failed", message: "Missing params" });
       }
 
-      await deleteDoc(collectionTaskId(boardId, cardId, taskId));
+      await deleteDoc(docTaskId(boardId, cardId, taskId));
       res.status(200).json({ status: "success" });
     } catch (error) {
       res.status(500).json({ status: "failed", message: "delete failed", error });
@@ -121,7 +122,7 @@ class taskController {
         return res.status(400).json({ status: "failed", message: "Missing params" });
       }
 
-      const docRef = collectionTaskId(boardId, cardId, taskId);
+      const docRef = docTaskId(boardId, cardId, taskId);
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) return res.status(404).json({ message: "Task not found" });
 
@@ -146,7 +147,7 @@ class taskController {
         return res.status(400).json({ status: "failed", message: "Missing params" });
       }
 
-      const docRef = collectionTaskId(boardId, cardId, taskId);
+      const docRef = docTaskId(boardId, cardId, taskId);
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) return res.status(404).json({ message: "Task not found" });
 
@@ -164,7 +165,7 @@ class taskController {
         return res.status(400).json({ status: "failed", message: "Missing params" });
       }
 
-      const docRef = collectionTaskId(boardId, cardId, taskId);
+      const docRef = docTaskId(boardId, cardId, taskId);
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) return res.status(404).json({ message: "Task not found" });
 

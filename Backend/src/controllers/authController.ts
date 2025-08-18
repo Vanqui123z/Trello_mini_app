@@ -24,7 +24,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
 class authController {
 
-
+    // /auth/signup
     async signup(req: Request, res: Response) {
 
         try {
@@ -51,7 +51,7 @@ class authController {
         }
     }
 
-
+    // /auth/signin
     // Signin: check code and return JWT
     async signin(req: Request, res: Response) {
         try {

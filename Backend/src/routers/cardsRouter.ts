@@ -7,11 +7,11 @@ const route = Router({ mergeParams: true });
 route.get("/", cardController.getAll);
 route.post("/", cardController.create);
 route.get("/:cardId", cardController.getById);
-route.get("/user/:userId", cardController.getByUser);
+route.delete("/:cardId", cardController.delete);
 route.put("/:cardId", cardController.update);
+route.get("/user/:userId", cardController.getByUser);
 route.post("/invite", inviteController.invite);
 route.post("/:cardId/invite/accept", inviteController.acceptInvite);
-route.delete("/:cardId", cardController.delete);
 
 route.use("/:cardId/tasks", taskRouter)
 

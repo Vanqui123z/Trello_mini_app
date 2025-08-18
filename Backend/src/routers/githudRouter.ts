@@ -1,11 +1,12 @@
-import { Router } from "express";
+import express from "express";
 import repositoriesController from "../controllers/repositoriesController"
-const route = Router()
+const taskRouter = express.Router({ mergeParams: true }); 
+
 
 // Lấy danh sách GitHub attachments
-route.post("/github-attach", repositoriesController.attachToTask);
+taskRouter.post("/github-attach", repositoriesController.attachToTask);
 // Xóa GitHub attachment
-route.get("/github-attachments", repositoriesController.getAttachments);
-route.delete("/github-attachments/:attachmentId", repositoriesController.deleteAttachment);
+taskRouter.get("/github-attachments", repositoriesController.getAttachments);
+taskRouter.delete("/github-attachments/:attachmentId", repositoriesController.deleteAttachment);
 
-export default route;
+export default taskRouter;

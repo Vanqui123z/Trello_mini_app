@@ -64,8 +64,6 @@ class CardController {
     res.status(500).json({ status: "failed", message: "getById failed", error });
   }
 }
-
-  
 async update(req: Request, res: Response) {
   try {
     const { boardId, cardId } = req.params;

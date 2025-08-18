@@ -52,10 +52,10 @@ class inviteController {
     // /boards/:boardId/cards/:id/invite/accept
     async acceptInvite(req: Request, res: Response) {
         try {
-            const { boardId, inviteId } = req.params;
-            const { action } = req.body; // "accept" or "declined"
+            const { boardId, inviteId,cardId, } = req.params;
+            const { action } = req.body;
 
-            if (!boardId || !inviteId || !action) {
+            if (!boardId || !inviteId || !action|| !cardId) {
                 return res.status(400).json({ success: false, message: "Missing params" });
             }
 
@@ -70,9 +70,9 @@ class inviteController {
 
             if (action === "accepted") {
                 // add board members
-                const boardRef = doc(db, "Boards", boardId);
+                const boardRef = doc(db, "Boards", boardId,"Cards",cardId);
                 await setDoc(boardRef, {
-                    members: arrayUnion(inviteData.memberId)
+                    list_member: arrayUnion(inviteData.memberId)
                 }, { merge: true });
 
                 // Update invite status

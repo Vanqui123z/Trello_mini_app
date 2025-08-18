@@ -8,6 +8,7 @@ const router = Router()
 
 router.use("/boards",boardsRouter)
 router.use("/auth",authRouter)
+router.use("/repositories",repositoriesController.getRepoInfo)
 
 
 router.get("/repositories/:repositoryId/github-info",repositoriesController.attachToTask)
