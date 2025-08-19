@@ -66,8 +66,14 @@ II. Giải quyết các vấn đề
 6. Các vấn đề lớn:
     *backend:
         -xây dựng csdl thật hợp lí để các phụ thuộc , query đúng, chính xác.
+           => tôi đã thiết kế các collection và các document của firebase với sự phụ thuộc chặt chẽ và đúng với api
         -khi lấy được dữ liệu về , dữ liệu gồm nhiều trường thừa -> phải lọc dữ liệu 
+           => tôi đã tạo ra hàm fiiterData để chỉ lấy các dữ liệu cần thiết 
     *frontend:
-        - quản lí các state 
+        - quản lí các state
+        - đảm bảo dữ liệu gửi lên server đúng định dạng và không bị lỗi
+            => tôi đã quản lí các state 1 cách chặt chẽ và bắt lỗi ngay từ đây 
         - xử lí các dữ liệu bị lỗi
-        - đảm bảo dữ liệu gửi lên server đúng định dạng và không bị lỗi 
+           => khi dữ liệu fetch bị lỗi tôi đã thử cách tiếp cần từ API khác để lấy được dữ liệu mong muốn 
+          
+       
