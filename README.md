@@ -50,9 +50,24 @@ DELETE /boards/:boardId/cards/:cardId/tasks/:taskId/github-attachments/:attachme
 
 4. Xây dựng frontend, router, giao diện 
 
-II. Giải quyết các vấn đề
-
-Quản lí dự án: -Chia nhỏ các router, logic để dễ dàng quản lí -Sử dụng interface để xây dựng đối tượng giúp dễ dàng quản lí phụ thuộc và đồng nhất với database
-Xác thực Sử dụng jwt để tạo token và gửi về frontend , lưu ở localstorage Sử dụng Math.floor(100000 + Math.random() * 900000).toString() để tạo mã code và sử dụng nodemailer để gửi về email
-Kết nối repo githud sử dụng fetch để kết nối với repo githud lấy : branches pulls issues commits 5.frontend tạo service để fetch dữ liệu từ backend quản lí các state của từng trang thiết kế giao diện thân thiện , responsive
-Các vấn đề lớn: *backend: -xây dựng csdl thật hợp lí để các phụ thuộc , query đúng, chính xác. => tôi đã thiết kế các collection và các document của firebase với sự phụ thuộc chặt chẽ và đúng với api -khi lấy được dữ liệu về , dữ liệu gồm nhiều trường thừa -> phải lọc dữ liệu => tôi đã tạo ra hàm fiiterData để chỉ lấy các dữ liệu cần thiết *frontend: - quản lí các state - đảm bảo dữ liệu gửi lên server đúng định dạng và không bị lỗi => tôi đã quản lí các state 1 cách chặt chẽ và bắt lỗi ngay từ đây - xử lí các dữ liệu bị lỗi => khi dữ liệu fetch bị lỗi tôi đã thử cách tiếp cần từ API khác để lấy được dữ liệu mong muốn
+II. Giải quyết các vấn đề 
+1. Quản lí dự án:
+    -Chia nhỏ các router, logic để dễ dàng quản lí 
+    -Sử dụng interface để xây dựng đối tượng giúp dễ dàng quản lí phụ thuộc và đồng nhất với database 
+2. Xác thực 
+     Sử dụng jwt để tạo token và gửi về frontend , lưu ở localstorage
+     Sử dụng Math.floor(100000 + Math.random() * 900000).toString() để tạo mã code và sử dụng nodemailer để gửi về email
+4. Kết nối repo githud
+    sử dụng fetch để kết nối với repo githud lấy : branches pulls issues commits
+5.frontend
+    tạo service để fetch dữ liệu từ backend 
+    quản lí các state của từng trang
+    thiết kế giao diện thân thiện , responsive
+6. Các vấn đề lớn:
+    *backend:
+        -xây dựng csdl thật hợp lí để các phụ thuộc , query đúng, chính xác.
+        -khi lấy được dữ liệu về , dữ liệu gồm nhiều trường thừa -> phải lọc dữ liệu 
+    *frontend:
+        - quản lí các state 
+        - xử lí các dữ liệu bị lỗi
+        - đảm bảo dữ liệu gửi lên server đúng định dạng và không bị lỗi 
