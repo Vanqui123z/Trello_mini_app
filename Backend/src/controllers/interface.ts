@@ -42,8 +42,8 @@ export interface Task {
   status: TaskStatus;
   createdAt: Timestamp | FieldValue;
   ownerId: string;
-  assignedMembers: [];
-  githubAttachments: [];
+  assignedMembers: string[];
+  githubAttachments: string[];
 }
 
 // 5. Invitations 

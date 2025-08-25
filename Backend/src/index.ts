@@ -4,10 +4,11 @@ import router from "./routers/index";
 import cors from "cors"
 import session from "express-session";
 
+
 const app = express();
 app.use(cors({
   origin: "http://localhost:5173",
-  credentials: true, // nếu bạn gửi cookie/token trong header
+  credentials: true, 
 }));
 
 app.use(session({

@@ -13,7 +13,7 @@ function App() {
             <Route path='/auth/signin' element={<Verify />}/>
             <Route path='/boards' element={<Boards />}/>
             <Route path='/boards/:boardId/cards' element={<Cards />}/>
-            <Route path='/boards/:boardId/cards/:cardId/task' element={<Cards />}/>
+            <Route path='/boards/:boardId/cards/:cardId/tasks' element={<Cards />}/>
             <Route path='/boards/:boardId/cards/:cardId/tasks/:taskId' element={<Tasks />}/>
             <Route path='/repositories/:repositoryId/github-info' element={<RepositoryInfo />}/>
             <Route path='*' element={<Navigate to ="/auth/signup" replace />}/>

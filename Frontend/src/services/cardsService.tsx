@@ -3,8 +3,7 @@ export const BASE_URL = "http://localhost:3000";
 export const API_URL = {
   boards: `${BASE_URL}/boards`,
   cards: (boardId: string) => `${BASE_URL}/boards/${boardId}/cards`,
-  cardById: (boardId: string, cardId: string) =>
-    `${BASE_URL}/boards/${boardId}/cards/${cardId}`,
+  cardById: (boardId: string, cardId: string) => `${BASE_URL}/boards/${boardId}/cards/${cardId}`,
 };
 
 class CardsService {
@@ -21,13 +20,12 @@ class CardsService {
     name: string,
     description: string,
     list_member: any,
-    ownerId: any,
     tasks_count: number
   ) {
     const res = await fetch(`${API_URL.cards(boardId)}`, {
       method: "POST",
       headers: this.getAuthHeaders(),
-      body: JSON.stringify({ name, description, list_member, ownerId, tasks_count }),
+      body: JSON.stringify({ name, description, list_member, tasks_count }),
     });
 
     if (!res.ok) {

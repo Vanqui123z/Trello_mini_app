@@ -55,6 +55,7 @@ const Tasks = () => {
                     // If taskId is provided, fetch the specific task
                     try {
                         const dataTask = await tasksService.getById(boardId, cardId, taskId);
+                        console.log(dataTask)
                         if (dataTask.task) {
                             setTask(dataTask.task);
                             setDescription(dataTask.task.description || "");

@@ -410,3 +410,20 @@
     }
   }
 }
+
+/* Drag and Drop Styles */
+.card-wrapper.dragging {
+  transform: rotate(5deg);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  opacity: 0.9;
+  background: #f8f9fa;
+}
+
+.list {
+  transition: background-color 0.2s ease;
+}
+
+.list:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}

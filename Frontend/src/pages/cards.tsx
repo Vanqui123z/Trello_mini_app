@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from "react";
-import "../styles/cards.scss";
 import { useNavigate, useParams } from "react-router-dom";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import "../styles/cards.scss";
 import cardsService from "../services/cardsService";
-import inviteService from "../services/inviteService";
-interface Task {
-    title: string;
-    description: string;
-    status: string;
-    ownerId: string;
-    assignedMembers: string[];
-}
+import TopBar from "../components/TopBar";
+import Sidebar from "../components/Sidebar";
 
+// Types
 interface Card {
     id?: string;
     name: string;
@@ -18,7 +14,7 @@ interface Card {
     ownerId: string;
     list_member: string[];
     tasks_count: number;
-    tasks: Task[];
+    createdAt?: any;
 }
 
 interface List {
@@ -28,332 +24,303 @@ interface List {
 
 const Cards: React.FC = () => {
     const { boardId } = useParams<{ boardId: string }>();
+    const navigate = useNavigate();
+
     const [cards, setCards] = useState<Card[]>([]);
     const [lists, setLists] = useState<List[]>([]);
     const [newCardInputs, setNewCardInputs] = useState<{ [key: string]: string }>({});
+    const [loading, setLoading] = useState(false);
     const [showAddList, setShowAddList] = useState(false);
     const [newListTitle, setNewListTitle] = useState("");
-    const [showInviteModal, setShowInviteModal] = useState(false);
-    const [inviteEmail, setInviteEmail] = useState("");
-    const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchCards = async () => {
-            if (!boardId) {
-                console.error("No boardId provided");
-                return;
-            }
-            try {
-                const data = await cardsService.getAll(boardId);
-                console.log("Fetched data:", data);
-                setCards(data.cards || []);
-            } catch (error) {
-                console.error("Failed to fetch cards:", error);
-            }
-        };
-        fetchCards();
-    }, [boardId]);
+    // Fetch cards from API
+    const fetchCards = async () => {
+        if (!boardId) return;
+        setLoading(true);
+        try {
+            const data = await cardsService.getAll(boardId);
+            setCards(data.cards);
+        } catch (error) {
+            console.error("Failed to fetch cards:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    useEffect(() => {
-        const mapLists: { [title: string]: Card[] } = {};
-
-        cards.forEach((card) => {
-            if (card.list_member.length === 0) {
-                ["Unassigned", "todo", "pending"].forEach(title => {
-                    mapLists[title] = mapLists[title] || [];
-                    mapLists[title].push({ ...card });
-                });
-            } else {
-                card.list_member.forEach((member) => {
-                    mapLists[member] = mapLists[member] || [];
-                    mapLists[member].push({ ...card });
-                });
-            }
-        });
-
-        const groupedLists: List[] = Object.keys(mapLists).map((title) => ({
-            title,
-            cards: mapLists[title],
-        }));
-
-        setLists(groupedLists);
-    }, [cards]);
-
-    const addCard = async (listTitle: string, index: number) => {
+    // Create new card via API
+    const createCard = async (listTitle: string, tasksCount: number) => {
         const cardTitle = newCardInputs[listTitle]?.trim();
         if (!cardTitle || !boardId) return;
 
         try {
-            const newCard: Card = {
-                name: cardTitle,
-                description: "new task",
-                ownerId: "user01",
-                list_member: listTitle === "Unassigned" ? [] : [listTitle],
-                tasks_count: 10,
-                tasks: [],
-            };
+            await cardsService.create(
+                boardId,
+                cardTitle,
+                "New card description",
+                [listTitle], // list_member array
+                tasksCount,
+            );
 
-            setCards([...cards, newCard]);
-            setNewCardInputs((prev) => ({ ...prev, [listTitle]: "" }));
-            console.log("Adding card:", !newCard.ownerId);
-            if (!boardId || !newCard.name || !newCard.description || !newCard.ownerId || !newCard.list_member || !newCard.tasks_count) { return console.error("Invalid card data"); }
-            await cardsService.create(boardId, newCard.name, newCard.description, newCard.ownerId, newCard.list_member, newCard.tasks_count);
+            // Clear input and refresh cards
+            setNewCardInputs(prev => ({ ...prev, [listTitle]: "" }));
+            fetchCards();
         } catch (error) {
-            console.error("Failed to add card:", error);
-            setCards(cards); // Revert on error
+            console.error("Failed to create card:", error);
         }
     };
 
-    const addList = () => {
-        const trimmedTitle = newListTitle.trim();
-        if (!trimmedTitle) return;
+    // Delete card via API
+    const deleteCard = async (cardId: string | undefined) => {
+        if (!cardId || !boardId) return;
 
-        // Add new list to local state (no API call)
-        setLists([...lists, { title: trimmedTitle, cards: [] }]);
-        setNewListTitle("");
-        setShowAddList(false);
-    };
-
-    const toggleCardInput = (listId: string) => {
-        setNewCardInputs((prev) => ({
-            ...prev,
-            [listId]: prev[listId] !== undefined ? "" : "",
-        }));
-    };
-    const deleteCard = async (cardId: string|undefined) => {
         try {
-            console.log(cardId)
-            if(!boardId||!cardId){return console.error("No cardId provided");}
-            await cardsService.delete(boardId,cardId);
-            setCards(cards.filter((card) => card.id !== cardId));
+            await cardsService.delete(boardId, cardId);
+            fetchCards(); // Refresh after delete
         } catch (error) {
             console.error("Failed to delete card:", error);
         }
     };
 
-    const toBoards = () => {
-        navigate("/boards");
-    };
+    // Add new list
+    const addList = async () => {
+        const trimmedTitle = newListTitle.trim();
+        if (!trimmedTitle) return;
 
-    const handleInvite = async () => {
-        if (!inviteEmail.trim() || !boardId) return;
-        
-        try {
-           
-            const currentUserId = "user01"; 
-            await inviteService.invite(boardId, inviteEmail, inviteEmail, currentUserId);
-            setInviteEmail("");
-            setShowInviteModal(false);
-            alert("Invitation sent successfully!");
-        } catch (error) {
-            console.error("Failed to send invitation:", error);
-            alert("Failed to send invitation. Please try again.");
+        // Check if list already exists
+        const listExists = lists.some(list => list.title === trimmedTitle);
+        if (listExists) {
+            alert("List with this name already exists!");
+            return;
         }
+        // Add new list to state
+        setLists(prev => [...prev, { title: trimmedTitle, cards: [] }]);
+        setNewListTitle("");
+        setShowAddList(false);
     };
 
-    const copyInviteLink = () => {
-        const inviteLink = `${window.location.origin}/boards/${boardId}/invite`;
-        navigator.clipboard.writeText(inviteLink).then(() => {
-            alert("Invite link copied to clipboard!");
-        }).catch(err => {
-            console.error('Failed to copy link: ', err);
+    function groupCardsByList(cards: Card[]): List[] {
+        const map = new Map<string, Card[]>();
+
+        cards.forEach((card) => {
+            card.list_member.forEach((listName) => {
+                if (!map.has(listName)) {
+                    map.set(listName, []);
+                }
+                map.get(listName)!.push(card);
+            });
         });
+
+        return Array.from(map.entries()).map(([title, cards]) => ({
+            title,
+            cards,
+        }));
+    }
+    useEffect(() => {
+        fetchCards();
+    }, [boardId]);
+
+    // Update lists when cards change
+    useEffect(() => {
+        if (cards.length >= 0) {
+            const updatedLists = groupCardsByList(cards);
+            setLists(updatedLists);
+        }
+    }, [cards]);
+
+    const handleDragEnd = async (result: DropResult) => {
+        // xác định vị trí bd, kết thúc và đối tượng -> clone list cho an toàn -> xóa card cũ -> chèn vị trí mới ( nếu list khác thì thay đổi title)   
+        const { source, destination, draggableId } = result;
+
+        if (!destination) return; 
+
+        // Không thay đổi gì
+        if (
+            source.droppableId === destination.droppableId &&
+            source.index === destination.index
+        )  return;
+
+        const updated =  JSON.parse(JSON.stringify(lists));
+        console.log(updated )
+
+        const sourceListIndex = updated.findIndex(l => l.title === source.droppableId);
+        const destListIndex = updated.findIndex(l => l.title === destination.droppableId);
+
+        if (sourceListIndex === -1 || destListIndex === -1) return;
+
+        // Lấy card bị kéo
+        const [movedCard] = updated[sourceListIndex].cards.splice(source.index, 1);
+
+        // Nếu sang list khác → cập nhật list_member
+        if (sourceListIndex !== destListIndex) {
+            movedCard.list_member = [updated[destListIndex].title];
+        }
+
+        // Chèn vào vị trí mới
+        updated[destListIndex].cards.splice(destination.index, 0, movedCard);
+        setLists(updated);
+
+       try {
+        if (!boardId) return;
+         await cardsService.update(boardId, draggableId, {
+           list_member: [updated[destListIndex].title],
+         });
+       } catch (error) {
+         console.error("Failed to update card:", error);
+       }
+        //   
     };
 
-    const openTask = (cardId: string | undefined) => {
-        if (cardId && boardId) {
-            navigate(`/boards/${boardId}/cards/${cardId}/task`);
-        }
-    };
+
 
     return (
         <div className="boards-container">
-            {/* Top bar */}
-            <div className="topbar">
-                <div className="topbar-content">
-                    <div className="topbar-left">
-                        <div className="logo">S</div>
-                    </div>
-                    <div className="topbar-right">
-                        <div className="icon">🔔</div>
-                        <div className="avatar">S</div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Sidebar */}
-            <div className="sidebar">
-                <div className="p-3">
-                    <h6 className="sidebar-title">Your boards</h6>
-                    <div className="board-item">
-                        <div className="board-icon">
-                            <img src="/assets/logo.png" alt="logo" height={36} width={36} />
-                        </div>
-                        <span>My Trello board</span>
-                    </div>
-
-                    <div className="sidebar-members">
-                        <div className="sidebar-members-title">Members</div>
-                        {["S1", "S2", "S3", "S4"].map((s, i) => (
-                            <div className="member" key={i}>
-                                <div className="member-avatar">{s}</div>
-                                <span>User {i + 1}</span>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="sidebar-footer">
-                        <div className="note">
-                            You can't find and reopen closed boards if close the board
-                        </div>
-                        <button className="btn-close" onClick={() => toBoards()}>Close</button>
-                    </div>
-                </div>
-            </div>
+            <TopBar showAppsMenu={false} />
+            <Sidebar type="cards" onClose={() => navigate("/boards")} />
 
             {/* Main content */}
             <div className="main-content">
                 <div className="board-header">
                     <h5>My Trello board</h5>
-                    <button className="btn-invite" onClick={() => setShowInviteModal(true)}>⚡ Invite member</button>
                 </div>
 
-                <div className="lists-container">
-                    {lists.map((list, index) => (
-                        <div key={index} className="list">
-                            <div className="list-header">
-                                <h6>{list.title}</h6>
-                                <div className="list-menu">⋯</div>
-                            </div>
+                {loading ? (
+                    <div className="loading">Loading...</div>
+                ) : (
+                    <DragDropContext onDragEnd={handleDragEnd}>
+                        <div className="lists-container">
+                            {lists.map((list, listIndex) => (
+                                <Droppable droppableId={list.title} key={listIndex}>
+                                    {(provided) => (
+                                        <div className="list" ref={provided.innerRef} {...provided.droppableProps}>
+                                            <div className="list-header">
+                                                <h6>{list.title} ({list.cards.length})</h6>
+                                            </div>
 
-                            {/* Cards */}
-                            {list.cards.map((card, index) => (
-                                <div 
-                                    key={index} 
-                                    className="card card-wrapper"
-                                    onClick={() => openTask(card.id)}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <span>{card.name}</span>
-                                    <button 
-                                        className="btn-delete" 
-                                        onClick={(e) => {
-                                            e.stopPropagation(); // Prevent card click when delete button is clicked
-                                            deleteCard(card.id);
-                                        }}
-                                    >
-                                        ❌
-                                    </button>
-                                </div>
+                                            {/* Display cards in this list */}
+                                            {list.cards.map((card, cardIndex) => (
+                                                
+                                                <Draggable key={card.id ?? `temp-${cardIndex}`} draggableId={card.id ?? `temp-${cardIndex}`} index={cardIndex}>
+
+                                                    {(provided,snapshot) => (
+                                                        <div
+                                                            ref={provided.innerRef}
+                                                            {...provided.draggableProps}
+                                                            {...provided.dragHandleProps}
+                                                            key={cardIndex}
+                                                            className={`card card-wrapper ${snapshot.isDragging ? "dragging" : ""}`}
+                                                            
+                                                            onClick={() => navigate(`/boards/${boardId}/cards/${card.id}/task`)}
+                                                            style={{ cursor: 'pointer' , ...provided.draggableProps.style }}
+                                                        >
+                                                            <span>{card.name}</span>
+                                                            <button
+                                                                className="btn-delete btn "
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    deleteCard(card.id);
+                                                                }}
+                                                            >
+                                                                ❌
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </Draggable>
+                                            ))}
+                                                {provided.placeholder}
+
+                                            {/* Add card input */}
+                                            <div className="add-card-area">
+                                                <textarea
+                                                    placeholder="Enter a title for this card..."
+                                                    value={newCardInputs[list.title] || ""}
+                                                    onChange={(e) =>
+                                                        setNewCardInputs(prev => ({
+                                                            ...prev,
+                                                            [list.title]: e.target.value,
+                                                        }))
+                                                    }
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter" && !e.shiftKey) {
+                                                            e.preventDefault();
+                                                            createCard(list.title, list.cards.length);
+                                                        }
+                                                    }}
+                                                />
+                                                <div className="add-card-actions">
+                                                    <button
+                                                        className="btn btn-primary"
+                                                        onClick={() => createCard(list.title, list.cards.length)}
+                                                    >
+                                                        Add card
+                                                    </button>
+                                                    <div
+                                                        className="close"
+                                                        onClick={() => {
+                                                            setNewCardInputs(prev => {
+                                                                const newInputs = { ...prev };
+                                                                delete newInputs[list.title];
+                                                                return newInputs;
+                                                            });
+                                                        }}
+                                                    >
+                                                        ✕
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </Droppable>
                             ))}
 
-                            {/* Add card input */}
-                            {newCardInputs[list.title] !== undefined ? (
-                                <div className="add-card-area">
-                                    <textarea
-                                        placeholder="Enter a title for this card..."
-                                        value={newCardInputs[list.title]}
-                                        onChange={(e) =>
-                                            setNewCardInputs({
-                                                ...newCardInputs,
-                                                [list.title]: e.target.value,
-                                            })
-                                        }
-                                        onKeyDown={(e) => {
-                                            if (e.key === "Enter" && !e.shiftKey) {
-                                                e.preventDefault();
-                                                addCard(list.title, index);
-                                            }
-                                        }}
-                                        autoFocus
-                                    />
-                                    <div className="add-card-actions">
-                                        <button className="btn btn-primary" onClick={() => addCard(list.title, index)}>Add card</button>
-                                        <div className="close" onClick={() => toggleCardInput(list.title)}>✕</div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="add-card" onClick={() => toggleCardInput(list.title)}>
-                                    <span>+ Add a card</span>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-
-                    {/* Add another list */}
-                    <div className="add-list">
-                        {!showAddList ? (
-                            <div
-                                className="add-list-btn"
-                                onClick={() => setShowAddList(true)}
-                            >
-                                + Add another list
-                            </div>
-                        ) : (
-                            <div className="add-list-area">
-                                <input
-                                    type="text"
-                                    placeholder="Enter list title..."
-                                    value={newListTitle}
-                                    onChange={(e) => setNewListTitle(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") addList();
-                                        if (e.key === "Escape") {
-                                            setShowAddList(false);
-                                            setNewListTitle("");
-                                        }
-                                    }}
-                                    autoFocus
-                                />
-                                <div className="add-list-actions ">
-                                    <button className="btn btn-primary" onClick={addList}>Add list</button>
+                            {/* Add new list */}
+                            <div className="add-list">
+                                {!showAddList ? (
                                     <div
-                                        className="close"
-                                        onClick={() => {
-                                            setShowAddList(false);
-                                            setNewListTitle("");
-                                        }}
+                                        className="add-list-btn"
+                                        onClick={() => setShowAddList(true)}
                                     >
-                                        ✕
+                                        + Add another list
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="add-list-area">
+                                        <input
+                                            type="text"
+                                            placeholder="Enter list title..."
+                                            value={newListTitle}
+                                            onChange={(e) => setNewListTitle(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") addList();
+                                                if (e.key === "Escape") {
+                                                    setShowAddList(false);
+                                                    setNewListTitle("");
+                                                }
+                                            }}
+                                            autoFocus
+                                        />
+                                        <div className="add-list-actions">
+                                            <button
+                                                className="btn btn-primary"
+                                                onClick={addList}
+                                            >
+                                                Add list
+                                            </button>
+                                            <div
+                                                className="close"
+                                                onClick={() => {
+                                                    setShowAddList(false);
+                                                    setNewListTitle("");
+                                                }}
+                                            >
+                                                ✕
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
-                </div>
+                        </div>
+                    </DragDropContext>
+                )}
             </div>
-
-            {/* Invite Modal */}
-            {showInviteModal && (
-                <div className="modal-overlay" onClick={() => setShowInviteModal(false)}>
-                    <div className="invite-modal" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h4>Invite to Board</h4>
-                            <button className="modal-close" onClick={() => setShowInviteModal(false)}>✕</button>
-                        </div>
-                        <div className="modal-body">
-                            <input
-                                type="email"
-                                className="invite-input"
-                                placeholder="Email address or name"
-                                value={inviteEmail}
-                                onChange={(e) => setInviteEmail(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") handleInvite();
-                                    if (e.key === "Escape") setShowInviteModal(false);
-                                }}
-                                autoFocus
-                            />
-                            <div className="invite-link-section">
-                                <div className="invite-text">Invite someone to this Workspace with a link:</div>
-                                <button className="copy-link-btn" onClick={copyInviteLink}>
-                                    💲 Copy link
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

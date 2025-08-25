@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { addDoc, getDoc, doc, collection, serverTimestamp, setDoc, deleteDoc, getDocs, query, where } from "firebase/firestore";
 import db from "../config/firebaseConfig";
 import { Card } from "./interface";
+import { AuthRequest } from "../middlewares/auth";
 
 export const collectionCard = (boardId: string) => {
   return collection(db, "Boards", boardId, "Cards");
@@ -14,17 +15,19 @@ function fitterData(doc: any, data: any) {
     description: data.description || "",
     createdAt: data.createdAt || null,
     ownerId: data.ownerId || "",
-    list_member: Array.isArray(data.members) ? data.members.map((ref: any) => { ref.id }) : [],
+    list_member: Array.isArray(data.list_member) ? data.list_member.map((ref: any) => {  return ref }) : [],
     tasks_count: data.tasks_count,
   }
 }
 
 class CardController {
 
-  async create(req: Request, res: Response) {
+  async create(req: AuthRequest, res: Response) {
     try {
-      const { name, description, list_member, ownerId, tasks_count } = req.body;
+      const { name, description, list_member, tasks_count } = req.body;
       const { boardId } = req.params;
+      const ownerId  = req.user?.userId;
+      if(!ownerId){return 0}
 
       if (!boardId) return res.status(400).json({ message: "boardId undefined" });
 
@@ -32,11 +35,11 @@ class CardController {
         name,
         description,
         createdAt: serverTimestamp(),
-        ownerId,
+        ownerId: ownerId,
         list_member,
         tasks_count,
       };
-      const newCard =  await addDoc(collectionCard(boardId), card)
+      const newCard = await addDoc(collectionCard(boardId), card);
       // Trả về luôn id card
       res.status(200).json({
         message: "success",
