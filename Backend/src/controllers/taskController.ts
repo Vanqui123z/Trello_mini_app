@@ -2,12 +2,13 @@ import { Request, Response } from "express";
 import { addDoc, getDoc, doc, collection, updateDoc, arrayRemove, serverTimestamp, setDoc, deleteDoc, getDocs, query, where } from "firebase/firestore";
 import db from "../config/firebaseConfig";
 import { Task } from "./interface";
+import { AuthRequest } from "../middlewares/auth";
 
 
-export function collectionTask  (boardId: string, cardId: string)  {
+export function collectionTask(boardId: string, cardId: string) {
   return collection(db, "Boards", boardId, "Cards", cardId, "Tasks");
 };
-export  function docTaskId  (boardId: string, cardId: string, taskId: string) {
+export function docTaskId(boardId: string, cardId: string, taskId: string) {
   return doc(db, "Boards", boardId, "Cards", cardId, "Tasks", taskId);
 };
 
@@ -20,16 +21,18 @@ function fitterData(doc: any, data: any) {
     status: data.status || "",
     createdAt: data.createdAt || null,
     ownerId: data.ownerId || "",
-    assignedMembers: Array.isArray(data.members) ? data.members.map((ref: any) => { return ref }) : []
+    assignedMembers: Array.isArray(data.assignedMembers) ? data.assignedMembers.map((ref: any) => { return ref }) : []
   }
 }
 
 
 class taskController {
-  async create(req: Request, res: Response) {
+  async create(req: AuthRequest, res: Response) {
     try {
-      const { title, description, status, ownerId, assignedMembers,githubAttachments  } = req.body;
+      const { title, description, status, assignedMembers, githubAttachments } = req.body;
       const { boardId, cardId } = req.params;
+      const ownerId = req.user?.userId;
+      if (!ownerId) { return 0 }
       console.log("req.params", req.params)
       if (!boardId || !cardId) {
         console.log(boardId, cardId)
@@ -46,8 +49,8 @@ class taskController {
         createdAt: serverTimestamp(),
       };
 
-     const newTasks = await addDoc(collectionTask(boardId, cardId), task);
-       res.status(200).json({
+      const newTasks = await addDoc(collectionTask(boardId, cardId), task);
+      res.status(200).json({
         message: "success",
         newTask: {
           taskId: newTasks.id,
@@ -80,7 +83,7 @@ class taskController {
         return res.status(400).json({ status: "failed", message: "Missing params" });
       }
 
-      const docRef =  docTaskId(boardId, cardId, taskId);
+      const docRef = docTaskId(boardId, cardId, taskId);
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists())

@@ -32,7 +32,6 @@ class TasksService {
     title: string,
     description: string,
     status: string,
-    ownerId: string,
     assignedMembers: any,
     githubAttachments: any
   ) {
@@ -43,7 +42,6 @@ class TasksService {
         title,
         description,
         status,
-        ownerId,
         assignedMembers,
         githubAttachments,
       }),

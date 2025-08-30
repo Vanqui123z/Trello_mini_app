@@ -3,8 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import "../styles/cards.scss";
 import cardsService from "../services/cardsService";
+import tasksService from "../services/tasksService";
 import TopBar from "../components/TopBar";
 import Sidebar from "../components/Sidebar";
+import Invite from "../components/Invite";
 
 // Types
 interface Card {
@@ -21,6 +23,7 @@ interface List {
     title: string;
     cards: Card[];
 }
+
 
 const Cards: React.FC = () => {
     const { boardId } = useParams<{ boardId: string }>();
@@ -46,6 +49,7 @@ const Cards: React.FC = () => {
             setLoading(false);
         }
     };
+  
 
     // Create new card via API
     const createCard = async (listTitle: string, tasksCount: number) => {
@@ -53,19 +57,19 @@ const Cards: React.FC = () => {
         if (!cardTitle || !boardId) return;
 
         try {
-            await cardsService.create(
+            const newCard = await cardsService.create(
                 boardId,
                 cardTitle,
                 "New card description",
-                [listTitle], // list_member array
+                [listTitle],
                 tasksCount,
             );
-
+            setCards(prev => [...prev, newCard]);
             // Clear input and refresh cards
             setNewCardInputs(prev => ({ ...prev, [listTitle]: "" }));
-            fetchCards();
         } catch (error) {
             console.error("Failed to create card:", error);
+           
         }
     };
 
@@ -80,7 +84,25 @@ const Cards: React.FC = () => {
             console.error("Failed to delete card:", error);
         }
     };
-
+  const openTask = (cardId: string | undefined, cardName: string | undefined, listTitle: string | undefined) => async () => {
+        if (!boardId || !cardId || !cardName || !listTitle) return;
+        const tasks = await tasksService.getAll(boardId, cardId);
+        console.log(tasks);
+        try {
+            await tasksService.create(
+                boardId,
+                cardId,
+                cardName,
+                "new",
+                listTitle,
+                [],
+                [],
+            );
+        } catch (error) {
+            
+        }
+        navigate(`/boards/${boardId}/cards/${cardId}/tasks/${tasks.tasks[0]?.id}`);
+    };
     // Add new list
     const addList = async () => {
         const trimmedTitle = newListTitle.trim();
@@ -131,17 +153,15 @@ const Cards: React.FC = () => {
         // xác định vị trí bd, kết thúc và đối tượng -> clone list cho an toàn -> xóa card cũ -> chèn vị trí mới ( nếu list khác thì thay đổi title)   
         const { source, destination, draggableId } = result;
 
-        if (!destination) return; 
-
+        if (!destination) return;
         // Không thay đổi gì
         if (
             source.droppableId === destination.droppableId &&
             source.index === destination.index
-        )  return;
+        ) return;
 
-        const updated =  JSON.parse(JSON.stringify(lists));
-        console.log(updated )
-
+        const updated = JSON.parse(JSON.stringify(lists));
+        console.log(updated)
         const sourceListIndex = updated.findIndex(l => l.title === source.droppableId);
         const destListIndex = updated.findIndex(l => l.title === destination.droppableId);
 
@@ -159,30 +179,28 @@ const Cards: React.FC = () => {
         updated[destListIndex].cards.splice(destination.index, 0, movedCard);
         setLists(updated);
 
-       try {
-        if (!boardId) return;
-         await cardsService.update(boardId, draggableId, {
-           list_member: [updated[destListIndex].title],
-         });
-       } catch (error) {
-         console.error("Failed to update card:", error);
-       }
+        try {
+            if (!boardId) return;
+            await cardsService.update(boardId, draggableId, {
+                list_member: [updated[destListIndex].title],
+            });
+        } catch (error) {
+            console.error("Failed to update card:", error);
+        }
         //   
     };
 
-
-
     return (
         <div className="boards-container">
-            <TopBar showAppsMenu={false} />
+            <TopBar showAppsMenu={false} boardId={boardId} />
             <Sidebar type="cards" onClose={() => navigate("/boards")} />
 
             {/* Main content */}
-            <div className="main-content">
-                <div className="board-header">
+            <div className="main-content ">
+                <div className="board-header d-flex justify-content-between ">
                     <h5>My Trello board</h5>
+                    <Invite boardId={boardId} />
                 </div>
-
                 {loading ? (
                     <div className="loading">Loading...</div>
                 ) : (
@@ -198,19 +216,19 @@ const Cards: React.FC = () => {
 
                                             {/* Display cards in this list */}
                                             {list.cards.map((card, cardIndex) => (
-                                                
+
                                                 <Draggable key={card.id ?? `temp-${cardIndex}`} draggableId={card.id ?? `temp-${cardIndex}`} index={cardIndex}>
 
-                                                    {(provided,snapshot) => (
+                                                    {(provided, snapshot) => (
                                                         <div
                                                             ref={provided.innerRef}
                                                             {...provided.draggableProps}
                                                             {...provided.dragHandleProps}
                                                             key={cardIndex}
                                                             className={`card card-wrapper ${snapshot.isDragging ? "dragging" : ""}`}
-                                                            
-                                                            onClick={() => navigate(`/boards/${boardId}/cards/${card.id}/task`)}
-                                                            style={{ cursor: 'pointer' , ...provided.draggableProps.style }}
+
+                                                            onClick={openTask(card.id,card.name,list.title)}
+                                                            style={{ cursor: 'pointer', ...provided.draggableProps.style }}
                                                         >
                                                             <span>{card.name}</span>
                                                             <button
@@ -226,7 +244,7 @@ const Cards: React.FC = () => {
                                                     )}
                                                 </Draggable>
                                             ))}
-                                                {provided.placeholder}
+                                            {provided.placeholder}
 
                                             {/* Add card input */}
                                             <div className="add-card-area">

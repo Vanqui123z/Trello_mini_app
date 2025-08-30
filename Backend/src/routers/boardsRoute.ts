@@ -9,8 +9,9 @@ route.get("/", boardController.getAll);
 route.get("/:boardId", boardController.getById);
 route.put("/:boardId", boardController.update);
 route.delete("/:boardId", boardController.delete);
+route.get("/:boardId/invite", inviteController.getInvite);
 route.post("/:boardId/invite", inviteController.invite);
-route.post("/:boardId/invite/:inviteId", inviteController.acceptInvite);
+route.post("/:boardId/invite/:inviteId/accept", inviteController.acceptInvite);
 route.use("/:boardId/cards",cardsRouter)
 
 export default route;

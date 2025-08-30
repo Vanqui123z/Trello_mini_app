@@ -14,7 +14,6 @@ class GitHubController {
       const datarepo = await fetchRepo.json();
       const repositoryId = datarepo.id;
 
-      // const { repositoryId } = req.params; 
 
       // Fetch song song
       const [branchesRes, pullsRes, issuesRes, commitsRes] = await Promise.all([
@@ -100,7 +99,7 @@ class GitHubController {
 
   }
 
-  // remove `/boards/:boardId/cards/:cardId/tasks/:taskId/github-attachments/:attachmentId`
+ 
   async deleteAttachment(req: Request, res: Response) {
 
     try {

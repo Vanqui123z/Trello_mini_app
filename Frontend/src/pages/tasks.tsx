@@ -1,10 +1,10 @@
 // CardDetail.tsx
 import React, { useState, useEffect } from "react";
-import { Button, Form, Card, Row, Col, Modal, ListGroup } from "react-bootstrap";
+import { Button, Form, Card, Row, Col } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/tasks.scss";
 import tasksService from "../services/tasksService";
-import cardsService from "../services/cardsService";
+import { MembersModal, DetailsModal } from "../components";
 
 interface Task {
     id?: string;
@@ -16,20 +16,9 @@ interface Task {
     assignedMembers: string[];
 }
 
-interface CardData {
-    id: string;
-    name: string;
-    description?: string;
-    ownerId: string;
-    list_member: string[];
-    tasks_count: number;
-    tasks: Task[];
-}
-
 const Tasks = () => {
     const { boardId, cardId, taskId } = useParams<{ boardId: string; cardId: string; taskId?: string }>();
     const navigate = useNavigate();
-    const [card, setCard] = useState<CardData | null>(null);
     const [task, setTask] = useState<Task | null>(null);
     const [loading, setLoading] = useState(true);
     const [description, setDescription] = useState("");
@@ -39,46 +28,19 @@ const Tasks = () => {
 
     useEffect(() => {
         const fetchCardAndTask = async () => {
-            if (!boardId || !cardId) {
-                console.error("BoardId or CardId not provided");
+            if (!boardId || !cardId || !taskId) {
+                console.error("BoardId or CardId or TaskId not provided");
                 return;
             }
-
             try {
                 setLoading(true);
-                
-                // Fetch card data first
-                const dataCard = await cardsService.getById(boardId, cardId);
-                setCard(dataCard.cards);
-
-                if (taskId) {
-                    // If taskId is provided, fetch the specific task
-                    try {
-                        const dataTask = await tasksService.getById(boardId, cardId, taskId);
-                        console.log(dataTask)
-                        if (dataTask.task) {
-                            setTask(dataTask.task);
-                            setDescription(dataTask.task.description || "");
-                        } else {
-                            console.error("Task not found");
-                        }
-                    } catch (taskError) {
-                        console.error("Failed to fetch task:", taskError);
-                        // If task fetch fails, we might still want to show card info
-                    }
+                const dataTask = await tasksService.getById(boardId, cardId, taskId);
+                console.log(dataTask)
+                if (dataTask.task) {
+                    setTask(dataTask.task);
+                    setDescription(dataTask.task.description || "");
                 } else {
-                    // If no taskId, create a default task from card data
-                    if (dataCard.cards) {
-                        const defaultTask: Task = {
-                            title: dataCard.cards.name,
-                            description: dataCard.cards.description || "",
-                            status: "todo",
-                            ownerId: dataCard.cards.ownerId,
-                            assignedMembers: dataCard.cards.list_member || []
-                        };
-                        setTask(defaultTask);
-                        setDescription(defaultTask.description);
-                    }
+                    console.error("Task not found");
                 }
             } catch (error) {
                 console.error("Failed to fetch data:", error);
@@ -94,17 +56,7 @@ const Tasks = () => {
         navigate(`/boards/${boardId}/cards`);
     };
 
-    const handleDescriptionSave = async () => {
-        if (!task || !boardId || !cardId) return;
-
-        try {
-            // Update task description
-            // You might need to implement an update method in tasksService
-            console.log("Saving description:", description);
-        } catch (error) {
-            console.error("Failed to update description:", error);
-        }
-    };
+   
 
     if (loading) {
         return <div className="loading">Loading task...</div>;
@@ -119,14 +71,14 @@ const Tasks = () => {
                 <Card.Header className="tasks-header d-flex justify-content-between align-items-center">
                     <div>
                         <Card.Title className="tasks-title text-dark">
-                            📝
+
                             {task.title}
                         </Card.Title>
                         <Card.Subtitle className="tasks-subtitle mt-2">
                             in list {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
                         </Card.Subtitle>
                     </div>
-                    <Button className="close-btn" onClick={handleBack}>
+                    <Button className="btn  btn-danger" onClick={handleBack}>
                         ×
                     </Button>
                 </Card.Header>
@@ -155,12 +107,11 @@ const Tasks = () => {
                                     )}
                                     <Button
                                         className="add-member-btn"
-                                        onClick={() => setShowMembersModal(true)}
                                     >
                                         +
                                     </Button>
-                                    <Button className="watch-btn">
-                                        👁️ Watch
+                                    <Button className="watch-btn"   onClick={() => setShowMembersModal(true)}>
+                                        Watch
                                     </Button>
                                 </div>
                             </div>
@@ -168,7 +119,7 @@ const Tasks = () => {
                             {/* Description */}
                             <div className="description-section">
                                 <div className="section-header">
-                                    📄
+
                                     <strong>Description</strong>
                                 </div>
                                 <Form.Control
@@ -178,7 +129,6 @@ const Tasks = () => {
                                     className="description-textarea"
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
-                                    onBlur={handleDescriptionSave}
                                 />
                             </div>
 
@@ -186,7 +136,7 @@ const Tasks = () => {
                             <div className="activity-section">
                                 <div className="activity-header">
                                     <div className="activity-title">
-                                        ⚡
+
                                         <strong>Activity</strong>
                                     </div>
                                     <Button
@@ -235,7 +185,6 @@ const Tasks = () => {
                                 <strong className="section-title">Power-Ups</strong>
                                 <div className="github-container">
                                     <div className="github-header">
-                                        🐙
                                         <strong className="text-white">GitHub</strong>
                                     </div>
                                     <div className="github-actions">
@@ -265,205 +214,20 @@ const Tasks = () => {
             </Card>
 
             {/* Members Modal */}
-            <Modal
+            <MembersModal 
                 show={showMembersModal}
                 onHide={() => setShowMembersModal(false)}
-                centered
-                className="members-modal"
-            >
-                <Modal.Header closeButton className="members-modal-header">
-                    <Modal.Title className="members-modal-title">
-                        👥 Assigned Members
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="members-modal-body">
-                    {task && task.assignedMembers && task.assignedMembers.length > 0 ? (
-                        <ListGroup variant="flush">
-                            {task.assignedMembers.map((member, index) => (
-                                <ListGroup.Item
-                                    key={index}
-                                    className="member-list-item"
-                                >
-                                    <div className="member-info-container">
-                                        <div className="member-avatar-large">
-                                            {member.substring(0, 2).toUpperCase()}
-                                        </div>
-                                        <div className="member-details">
-                                            <div className="member-name">{member}</div>
-                                            <div className="member-email">{member}</div>
-                                            <div className="member-role">Member</div>
-                                        </div>
-                                        <div className="member-actions">
-                                            <Button
-                                                variant="outline-danger"
-                                                size="sm"
-                                                className="remove-member-btn"
-                                            >
-                                                Remove
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </ListGroup.Item>
-                            ))}
-                        </ListGroup>
-                    ) : (
-                        <div className="no-members-message">
-                            <div className="no-members-icon">👥</div>
-                            <h5>No members assigned</h5>
-                            <p>Add members to this task to help collaborate and track progress.</p>
-                        </div>
-                    )}
-
-                    <div className="add-member-section">
-                        <Button
-                            variant="primary"
-                            className="add-new-member-btn"
-                        >
-                            + Add Member
-                        </Button>
-                    </div>
-                </Modal.Body>
-            </Modal>
+                task={task}
+            />
 
             {/* Details Modal */}
-            <Modal
+            <DetailsModal 
                 show={showDetailsModal}
                 onHide={() => setShowDetailsModal(false)}
-                centered
-                size="lg"
-                className="details-modal"
-            >
-                <Modal.Header closeButton className="details-modal-header">
-                    <Modal.Title className="details-modal-title">
-                        📋 Task & Card Details
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="details-modal-body">
-                    {task && card && (
-                        <div className="details-content">
-                            {/* Task Details Section */}
-                            <div className="details-section">
-                                <h5 className="section-title">
-                                    <span className="section-icon">📝</span>
-                                    Task Information
-                                </h5>
-                                <div className="details-grid">
-                                    <div className="detail-item">
-                                        <label>Task ID:</label>
-                                        <span>{taskId || 'N/A'}</span>
-                                    </div>
-                                    <div className="detail-item">
-                                        <label>Title:</label>
-                                        <span>{task.title}</span>
-                                    </div>
-                                    <div className="detail-item">
-                                        <label>Status:</label>
-                                        <span className={`status-badge status-${task.status}`}>
-                                            {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
-                                        </span>
-                                    </div>
-                                    <div className="detail-item">
-                                        <label>Owner ID:</label>
-                                        <span>{task.ownerId}</span>
-                                    </div>
-                                    <div className="detail-item">
-                                        <label>Created At:</label>
-                                        <span>{task.createdAt ? new Date(task.createdAt).toLocaleString() : 'N/A'}</span>
-                                    </div>
-                                    <div className="detail-item full-width">
-                                        <label>Description:</label>
-                                        <div className="description-content">
-                                            {task.description || 'No description provided'}
-                                        </div>
-                                    </div>
-                                    <div className="detail-item full-width">
-                                        <label>Assigned Members:</label>
-                                        <div className="members-list">
-                                            {task.assignedMembers && task.assignedMembers.length > 0 ? (
-                                                task.assignedMembers.map((member, index) => (
-                                                    <span key={index} className="member-tag">
-                                                        {member}
-                                                    </span>
-                                                ))
-                                            ) : (
-                                                <span className="no-data">No members assigned</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Card Details Section */}
-                            {card && (
-                                <div className="details-section">
-                                    <h5 className="section-title">
-                                        <span className="section-icon">🗂️</span>
-                                        Card Information
-                                    </h5>
-                                    <div className="details-grid">
-                                        <div className="detail-item">
-                                            <label>Card ID:</label>
-                                            <span>{card.id}</span>
-                                        </div>
-                                        <div className="detail-item">
-                                            <label>Name:</label>
-                                            <span>{card.name}</span>
-                                        </div>
-                                        <div className="detail-item">
-                                            <label>Owner ID:</label>
-                                            <span>{card.ownerId}</span>
-                                        </div>
-                                        <div className="detail-item">
-                                            <label>Tasks Count:</label>
-                                            <span>{card.tasks_count}</span>
-                                        </div>
-                                        <div className="detail-item full-width">
-                                            <label>Card Description:</label>
-                                            <div className="description-content">
-                                                {card.description || 'No description provided'}
-                                            </div>
-                                        </div>
-                                        <div className="detail-item full-width">
-                                            <label>Card Members:</label>
-                                            <div className="members-list">
-                                                {card.list_member && card.list_member.length > 0 ? (
-                                                    card.list_member.map((member, index) => (
-                                                        <span key={index} className="member-tag">
-                                                            {member}
-                                                        </span>
-                                                    ))
-                                                ) : (
-                                                    <span className="no-data">No members in card</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Board & Navigation Info */}
-                            <div className="details-section">
-                                <h5 className="section-title">
-                                    <span className="section-icon">🎯</span>
-                                    Navigation Information
-                                </h5>
-                                <div className="details-grid">
-                                    <div className="detail-item">
-                                        <label>Board ID:</label>
-                                        <span>{boardId}</span>
-                                    </div>
-                                    <div className="detail-item">
-                                        <label>Current Path:</label>
-                                        <span className="path-info">
-                                            Board → Card → Task
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </Modal.Body>
-            </Modal>
+                task={task}
+                boardId={boardId}
+                taskId={taskId}
+            />
         </div>
     );
 };

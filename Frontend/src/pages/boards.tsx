@@ -33,7 +33,7 @@ const Boards: React.FC = () => {
             }
         };
         fetchBoards();
-    }, []);
+    }, [boards]);
 
     const handleCreateBoard = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -49,8 +49,10 @@ const Boards: React.FC = () => {
             console.error("Failed to create board:", error);
         }
     };
-
-
+    const deleteBoard = async (boardId: string) => {
+        await boardsService.delete(boardId);
+        setBoards(boards.filter(board => board.id !== boardId));
+    }
 
     return (
         <div className="boards-container">
@@ -67,13 +69,26 @@ const Boards: React.FC = () => {
                     {/* Boards Grid */}
                     <div className="boards-grid">
                         {boards.map((board, index) => (
-                            <div key={index} className="board-card" onClick={() => { return navigate(`/boards/${board.id}/cards`); }} >
+                            <div key={index} className="board-card d-flex" onClick={() => { return navigate(`/boards/${board.id}/cards`); }} >
                                 <div className="p-3">
                                     <div className="board-title">{board.name}</div>
                                     <div className="board-description">{board.description}</div>
                                 </div>
+                                <button
+                                    className="delete-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation(); 
+                                        if (window.confirm("Bạn có chắc muốn xoá board này không?")) {
+                                            deleteBoard(board.id);
+                                        }
+
+                                    }}
+                                >
+                                    ×
+                                </button>
                             </div>
                         ))}
+
 
                         {/* Create New Board */}
                         <div>

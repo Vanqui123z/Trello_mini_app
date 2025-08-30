@@ -49,6 +49,7 @@ class authController {
                 createdAt: serverTimestamp(),
                 expiresAt: expires,
             };
+            console.log("Generated OTP data:", otpData);
 
             if (!snapshot.empty) {
                 // Nếu email đã có → ghi đè (update)
@@ -71,67 +72,66 @@ class authController {
 
     // /auth/signin
     // Signin: check code and return JWT
-    async signin(req: Request, res: Response) {
-        try {
-            const { email, code } = req.body;
-            if (!email || !code) {
-                return res.status(400).json({ error: "Email and code required" });
-            }
-
-            // check otp
-            const q = query(
-                OTPCollection,
-                where("email", "==", email),
-                where("code", "==", code)
-            );
-            const snapshot = await getDocs(q);
-            if (snapshot.empty) {
-                return res.status(400).json({ error: "Invalid OTP" });
-            }
-
-            const otpDoc = snapshot.docs.map((ref) => fitterData(ref, ref.data()));
-
-            // query user theo email
-            const qUser = query(usersCollection, where("email", "==", email));
-            const snapshotUser = await getDocs(qUser);
-
-            let idUser: string;
-
-            if (!snapshotUser.empty) {
-                // user đã tồn tại
-                const ref = snapshotUser.docs[0];
-                if (!ref) {
-                    return res.status(400).json({ error: "Invalid user reference" });
-                }
-                idUser = ref.id;
-            } else {
-                // user chưa tồn tại → tạo mới
-                const newUserRef = doc(usersCollection);
-                idUser = newUserRef.id;
-                const newUser: User = {
-                    boardId: "",
-                    email,
-                    createdAt: serverTimestamp(),
-                    boards: [],
-                };
-                await setDoc(newUserRef, newUser);
-            }
-
-            // ký JWT với userId là id của collection
-            const token = jwt.sign(
-                { userId: idUser, email },
-                JWT_SECRET,
-                { expiresIn: "1h" }
-            );
-            return res.status(200).json({
-                token
-            });
-
-        } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: (error as Error).message });
+  async signin(req: Request, res: Response) {
+    try {
+        const { email, code } = req.body;
+        if (!email || !code) {
+            return res.status(400).json({ error: "Email and code required" });
         }
+
+        // check otp
+        const q = query(
+            OTPCollection,
+            where("email", "==", email),
+            where("code", "==", code)
+        );
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+            return res.status(400).json({ error: "Invalid OTP" });
+        }
+
+        // query user theo email
+        const qUser = query(usersCollection, where("email", "==", email));
+        const snapshotUser = await getDocs(qUser);
+
+        let userId: string;
+
+        if (snapshotUser.empty) {
+            // user chưa tồn tại → tạo mới
+            const newUserRef = doc(usersCollection);
+            userId = newUserRef.id;
+
+            const newUser: User = {
+                boardId: "",
+                email,
+                createdAt: serverTimestamp(),
+                boards: [],
+            };
+            await setDoc(newUserRef, newUser);
+        } else {
+            // user đã tồn tại
+            const ref = snapshotUser.docs[0];
+            if (!ref) {
+                return res.status(400).json({ error: "Invalid user reference" });
+            }
+            userId = ref.id;
+        }
+
+        // ký JWT với userId là id của collection
+        const token = jwt.sign(
+            { userId, email },
+            JWT_SECRET,
+            { expiresIn: "4h" }
+        );
+
+        return res.status(200).json({ token });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: (error as Error).message });
     }
+}
+
 
 
 }

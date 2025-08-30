@@ -11,16 +11,30 @@ class InviteService {
     };
   }
 
+  async getInvite(
+    boardId: string,
+    emailMember: string,
+  ) {
+    const res = await fetch(`${BOARD_API}/${boardId}/invite`, {
+      method: "GET",
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Failed to send invite");
+    }
+
+    return res.json();
+  }
   async invite(
     boardId: string,
-    memberId: string,
     emailMember: string,
-    boardOwnerId: string
   ) {
     const res = await fetch(`${BOARD_API}/${boardId}/invite`, {
       method: "POST",
       headers: this.getAuthHeaders(),
-      body: JSON.stringify({ memberId, emailMember, boardOwnerId }),
+      body: JSON.stringify({  emailMember }),
     });
 
     if (!res.ok) {
@@ -33,16 +47,15 @@ class InviteService {
 
   async acceptInvite(
     boardId: string,
-    cardId: string,
     inviteId: string,
     action: string
   ) {
     const res = await fetch(
-      `${BOARD_API}/${boardId}/cards/${cardId}/invite/accept`,
+      `${BOARD_API}/${boardId}/invite/${inviteId}/accept`,
       {
         method: "POST",
         headers: this.getAuthHeaders(),
-        body: JSON.stringify({ inviteId, action }),
+        body: JSON.stringify({ action }),
       }
     );
 

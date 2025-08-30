@@ -20,10 +20,8 @@ const db = getFirestore(app);
   try {
     const docRef = doc(db, "Boards", "boardId"); 
     const snap = await getDoc(docRef);
-    if (snap.exists()) {
+    if (snap) {
       console.log("✅ Firestore OK:");
-    } else {
-      console.log("⚠️ Firestore OK nhưng document không tồn tại");
     }
   } catch (err) {
     console.error("❌ Firestore lỗi:", err);
